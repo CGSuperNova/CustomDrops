@@ -1,0 +1,42 @@
+# 是否开启调试模式
+# 开启调试模式后，服务器后台将输出详细的运行日志
+# 一般情况下建议不要打开，避免日志输出过多
+debug: false
+# 在哪些世界启用自定义掉落
+enabled-worlds:
+  - world
+
+# 具体方块配置
+blocks:
+  # 方块ID
+  COAL_ORE:
+    # 是否覆盖原版的掉落物
+    override-default: true
+    # 特殊掉落物详细配置，可配置多个id
+    drops:
+      # 掉落物品id
+      - item: "DIAMOND"
+        # 掉落物品数量
+        amount: 1
+        # 掉落该物品的概率
+        base-chance: 0.1
+        # 是否允许时运附魔影响掉落数量
+        fortune-affects-count: true
+        # 命令执行次数是否按照掉落物品的数量来执行，如果填false则无论掉多少物品都只执行一次
+        execute-command-per-item: false
+        # 掉落该物品所执行的命令，可以写多个
+        commands:
+          # 命令详情，%player%表示玩家id
+          - command: "say 玩家 %player% 挖到了钻石！"
+            # 执行者，可填CONSOLE（控制台），PLAYER（玩家），OP（管理）
+            executor: CONSOLE
+          - command: "eco give %player% 100"
+            executor: CONSOLE
+      - item: "COAL"
+        amount: 3
+        base-chance: 1.0
+        fortune-affects-count: true
+        execute-command-per-item: true
+        commands:
+          - command: "give %player% stone 1"
+            executor: PLAYER

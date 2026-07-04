@@ -1,0 +1,13 @@
+org\example\com\customDrops\FortuneMultiplier.class
+org\example\com\customDrops\CommandEntry.class
+org\example\com\customDrops\UpdateChecker.class
+org\example\com\customDrops\BlockDropConfig.class
+org\example\com\customDrops\BlockBreakListener$1.class
+org\example\com\customDrops\BlockBreakListener.class
+org\example\com\customDrops\DropConfigManager.class
+org\example\com\customDrops\ReloadCommand.class
+org\example\com\customDrops\CommandEntry$ExecutorType.class
+org\example\com\customDrops\DropEntry.class
+org\example\com\customDrops\UpdateChecker$1.class
+org\example\com\customDrops\CustomDropsPlugin.class
+org\example\com\customDrops\FortuneConfig.class

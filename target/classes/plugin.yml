@@ -1,0 +1,15 @@
+name: CustomDrops
+version: 1.0.0
+main: org.example.com.customDrops.CustomDropsPlugin
+api-version: 1.20
+description: 自定义方块掉落物插件
+author: buzizi
+commands:
+  customdrops:
+    description: 重载插件配置
+    usage: /customdrops reload
+    permission: customdrops.reload
+permissions:
+  customdrops.reload:
+    description: 允许重载配置
+    default: op
