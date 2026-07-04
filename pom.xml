@@ -6,7 +6,7 @@
 
     <groupId>org.example.com</groupId>
     <artifactId>CustomDrops</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>CustomDrops</name>
