@@ -13,3 +13,6 @@ permissions:
   customdrops.reload:
     description: 允许重载配置
     default: op
+  customdrops.update:
+    description: 接收更新通知
+    default: op
