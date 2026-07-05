@@ -4,7 +4,7 @@
   <groupId>org.example.com</groupId>
   <artifactId>CustomDrops</artifactId>
   <name>CustomDrops</name>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <build>
     <defaultGoal>clean package</defaultGoal>
     <resources>
@@ -31,6 +31,14 @@
             <goals>
               <goal>shade</goal>
             </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>org.bstats</pattern>
+                  <shadedPattern>org.example.com.customDrops</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
           </execution>
         </executions>
       </plugin>

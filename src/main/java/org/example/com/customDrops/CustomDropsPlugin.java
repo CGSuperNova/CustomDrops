@@ -2,6 +2,7 @@ package org.example.com.customDrops;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
 public class CustomDropsPlugin extends JavaPlugin {
 
@@ -24,6 +25,10 @@ public class CustomDropsPlugin extends JavaPlugin {
         } else {
             getLogger().info("更新检测已禁用（配置 check-update: false）");
         }
+
+        // bStats初始化
+        int pluginId = 32385; // <--- 替换成你的插件ID！
+        Metrics metrics = new Metrics(this, pluginId);
 
         getLogger().info("自定义掉落插件已启用");
     }
