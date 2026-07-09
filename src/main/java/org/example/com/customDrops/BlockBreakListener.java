@@ -15,7 +15,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Random;
-import java.util.logging.Level;
 
 public class BlockBreakListener implements Listener {
 
@@ -101,6 +100,31 @@ public class BlockBreakListener implements Listener {
             world.dropItemNaturally(dropLoc, dropItem);
             if (plugin.isDebug()) {
                 plugin.getLogger().info("[Debug] 已掉落 " + finalAmount + " 个 " + dropItem.getType().name());
+            }
+
+            // ---- 经验和金币处理（已修复） ----
+            if (entry.getExp() > 0 || entry.getMoney() > 0) {
+                double expMultiplier = entry.getExpMultiplier();
+                double moneyMultiplier = entry.getMoneyMultiplier();
+                int finalExp = (int)(entry.getExp() * (1 + fortuneLevel * expMultiplier));
+                double finalMoney = entry.getMoney() * (1 + fortuneLevel * moneyMultiplier);
+
+                if (finalExp > 0) {
+                    player.giveExp(finalExp);
+                    if (plugin.isDebug()) {
+                        plugin.getLogger().info("[Debug] 给予 " + finalExp + " 经验值");
+                    }
+                }
+                if (finalMoney > 0) {
+                    if (plugin.getEconomy() != null) {
+                        plugin.getEconomy().depositPlayer(player, finalMoney);
+                        if (plugin.isDebug()) {
+                            plugin.getLogger().info("[Debug] 给予 " + finalMoney + " 金币");
+                        }
+                    } else {
+                        plugin.getLogger().warning("无法给予金币：Vault 未加载或没有经济插件");
+                    }
+                }
             }
 
             // 执行命令

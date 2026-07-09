@@ -46,6 +46,8 @@ public class DropConfigManager {
             List<DropEntry> drops = new ArrayList<>();
             List<Map<?, ?>> dropList = blockCfg.getMapList("drops");
 
+            plugin.getLogger().info("方块 " + blockName + " 的 dropList 大小: " + dropList.size());
+
             if (dropList.isEmpty()) {
                 plugin.getLogger().warning("方块 " + blockName + " 的掉落列表为空，已跳过");
                 continue;
@@ -137,17 +139,35 @@ public class DropConfigManager {
                     }
                 }
 
-                // 7. 创建 DropEntry 对象
+                int exp = 0;
+                Object expObj = dropMap.get("exp");
+                if (expObj instanceof Number) exp = ((Number) expObj).intValue();
+
+                double money = 0.0;
+                Object moneyObj = dropMap.get("money");
+                if (moneyObj instanceof Number) money = ((Number) moneyObj).doubleValue();
+
+                double expMultiplier = 0.0;
+                Object expMultObj = dropMap.get("exp-multiplier");
+                if (expMultObj instanceof Number) expMultiplier = ((Number) expMultObj).doubleValue();
+
+                double moneyMultiplier = 0.0;
+                Object moneyMultObj = dropMap.get("money-multiplier");
+                if (moneyMultObj instanceof Number) moneyMultiplier = ((Number) moneyMultObj).doubleValue();
+
                 DropEntry entry = new DropEntry(
                         new ItemStack(itemMat, baseAmount),
                         baseChance,
                         execPerItem,
                         fortuneAffectsCount,
-                        commands
+                        commands,
+                        exp,
+                        money,
+                        expMultiplier,
+                        moneyMultiplier
                 );
                 drops.add(entry);
             }
-
             // 创建方块配置
             BlockDropConfig blockConfig = new BlockDropConfig(overrideDefault, drops);
             blockConfigs.put(material, blockConfig);
@@ -172,5 +192,9 @@ public class DropConfigManager {
      */
     public BlockDropConfig getDropConfig(Material material) {
         return blockConfigs.get(material);
+    }
+
+    public Map<Material, BlockDropConfig> getAllConfigs() {
+        return Collections.unmodifiableMap(blockConfigs);
     }
 }

@@ -1,36 +1,53 @@
 package org.example.com.customDrops;
 
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bstats.bukkit.Metrics;
 
 public class CustomDropsPlugin extends JavaPlugin {
 
     private DropConfigManager configManager;
     private boolean debug = false;
-    private boolean checkUpdate = true;   // 默认开启
+    private boolean checkUpdate = true;
+    private Economy economy = null;  // Vault 经济对象
 
     @Override
     public void onEnable() {
+        // 现有的初始化...
         saveDefaultConfig();
         configManager = new DropConfigManager(this);
-        reloadConfigData();  // 加载所有配置，包括 debug 和 check-update
+        reloadConfigData();
+
+        // 注册 Vault 经济
+        setupEconomy();
 
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
-        getCommand("customdrops").setExecutor(new ReloadCommand(this));
+        getCommand("customdrops").setExecutor(new CustomDropsCommand(this));
 
-        // 如果开启更新检测，异步执行一次
         if (checkUpdate) {
             UpdateChecker.checkUpdateAsync(this);
-        } else {
-            getLogger().info("更新检测已禁用（配置 check-update: false）");
         }
 
-        // bStats初始化
-        int pluginId = 32385; // <--- 替换成你的插件ID！
-        Metrics metrics = new Metrics(this, pluginId);
-
         getLogger().info("自定义掉落插件已启用");
+    }
+
+    private void setupEconomy() {
+        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
+            getLogger().warning("Vault 未安装，金币功能将不可用");
+            return;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            getLogger().warning("没有找到经济插件（如 EssentialsX）");
+            return;
+        }
+        economy = rsp.getProvider();
+        getLogger().info("成功连接到经济系统");
+    }
+
+    public Economy getEconomy() {
+        return economy;
     }
 
     @Override

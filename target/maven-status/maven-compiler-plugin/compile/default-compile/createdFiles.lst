@@ -7,6 +7,7 @@ org\example\com\customDrops\BlockBreakListener.class
 org\example\com\customDrops\DropConfigManager.class
 org\example\com\customDrops\ReloadCommand.class
 org\example\com\customDrops\CommandEntry$ExecutorType.class
+org\example\com\customDrops\CustomDropsCommand.class
 org\example\com\customDrops\DropEntry.class
 org\example\com\customDrops\UpdateChecker$1.class
 org\example\com\customDrops\CustomDropsPlugin.class
