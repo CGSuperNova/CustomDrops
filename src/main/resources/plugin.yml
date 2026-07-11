@@ -1,5 +1,5 @@
 name: CustomDrops
-version: 1.0.2
+version: 1.0.3
 main: org.example.com.customDrops.CustomDropsPlugin
 api-version: 1.13
 description: 自定义方块掉落物插件
