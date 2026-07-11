@@ -42,7 +42,6 @@
                             <relocations>
                                 <relocation>
                                     <pattern>org.bstats</pattern>
-                                    <!-- 建议替换为你的插件包名，例如： -->
                                     <shadedPattern>org.example.com.customDrops</shadedPattern>
                                 </relocation>
                             </relocations>

@@ -4,13 +4,14 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
 public class CustomDropsPlugin extends JavaPlugin {
 
     private DropConfigManager configManager;
     private boolean debug = false;
     private boolean checkUpdate = true;
-    private Economy economy = null;  // Vault 经济对象
+    private Economy economy = null;
 
     @Override
     public void onEnable() {
@@ -18,6 +19,10 @@ public class CustomDropsPlugin extends JavaPlugin {
         saveDefaultConfig();
         configManager = new DropConfigManager(this);
         reloadConfigData();
+
+        // bStats服务
+        int pluginId = 32385;
+        Metrics metrics = new Metrics(this, pluginId);
 
         // 注册 Vault 经济
         setupEconomy();
