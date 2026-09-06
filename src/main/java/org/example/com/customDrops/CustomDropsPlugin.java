@@ -12,6 +12,7 @@ public class CustomDropsPlugin extends JavaPlugin {
     private boolean debug = false;
     private boolean checkUpdate = true;
     private Economy economy = null;
+    private boolean papiAvailable = false;
 
     @Override
     public void onEnable() {
@@ -26,6 +27,21 @@ public class CustomDropsPlugin extends JavaPlugin {
 
         // 注册 Vault 经济
         setupEconomy();
+
+        // 检测 PlaceholderAPI 是否加载
+        papiAvailable = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
+        if (papiAvailable) {
+            getLogger().info("PlaceholderAPI 已加载，控制台命令中的占位符将自动解析");
+        } else {
+            getLogger().info("PlaceholderAPI 未安装，控制台命令中的 PAPI 占位符将不会被解析");
+        }
+
+        getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
+        getCommand("customdrops").setExecutor(new CustomDropsCommand(this));
+
+        if (checkUpdate) {
+            UpdateChecker.checkUpdateAsync(this);
+        }
 
         getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
         getCommand("customdrops").setExecutor(new CustomDropsCommand(this));
@@ -80,5 +96,9 @@ public class CustomDropsPlugin extends JavaPlugin {
 
     public boolean isCheckUpdate() {
         return checkUpdate;
+    }
+
+    public boolean isPapiAvailable() {
+        return papiAvailable;
     }
 }

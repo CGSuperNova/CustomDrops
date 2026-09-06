@@ -4,7 +4,7 @@
   <groupId>org.example.com</groupId>
   <artifactId>CustomDrops</artifactId>
   <name>CustomDrops</name>
-  <version>1.0.2</version>
+  <version>1.0.4</version>
   <build>
     <defaultGoal>clean package</defaultGoal>
     <resources>

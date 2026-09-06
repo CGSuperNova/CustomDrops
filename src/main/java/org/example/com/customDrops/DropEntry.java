@@ -15,10 +15,12 @@ public class DropEntry {
     private final double money;
     private final double expMultiplier;   // 每级时运增加的经验百分比（0.5 = 50%）
     private final double moneyMultiplier; // 每级时运增加的金币百分比
+    private final boolean silkTouchIgnore;
 
     public DropEntry(ItemStack itemStack, double baseChance, boolean executeCommandPerItem,
                      boolean fortuneAffectsCount, List<CommandEntry> commands,
-                     int exp, double money, double expMultiplier, double moneyMultiplier) {
+                     int exp, double money, double expMultiplier, double moneyMultiplier,
+                     boolean silkTouchIgnore) {
         this.itemStack = itemStack.clone();
         this.baseChance = baseChance;
         this.executeCommandPerItem = executeCommandPerItem;
@@ -28,6 +30,7 @@ public class DropEntry {
         this.money = money;
         this.expMultiplier = expMultiplier;
         this.moneyMultiplier = moneyMultiplier;
+        this.silkTouchIgnore = silkTouchIgnore;
     }
 
     public ItemStack getItemStack() { return itemStack.clone(); }
@@ -41,4 +44,5 @@ public class DropEntry {
     public double getMoney() { return money; }
     public double getExpMultiplier() { return expMultiplier; }
     public double getMoneyMultiplier() { return moneyMultiplier; }
+    public boolean isSilkTouchIgnore() { return silkTouchIgnore; }
 }

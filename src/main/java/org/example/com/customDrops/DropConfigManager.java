@@ -42,6 +42,7 @@ public class DropConfigManager {
 
             ConfigurationSection blockCfg = blocksSection.getConfigurationSection(blockName);
             boolean overrideDefault = blockCfg.getBoolean("override-default", true);
+            boolean silkTouchPreserveOriginal = blockCfg.getBoolean("silk-touch-preserve-original", false);
 
             List<DropEntry> drops = new ArrayList<>();
             List<Map<?, ?>> dropList = blockCfg.getMapList("drops");
@@ -155,6 +156,12 @@ public class DropConfigManager {
                 Object moneyMultObj = dropMap.get("money-multiplier");
                 if (moneyMultObj instanceof Number) moneyMultiplier = ((Number) moneyMultObj).doubleValue();
 
+                boolean silkTouchIgnore = false;
+                Object silkObj = dropMap.get("silk-touch-ignore");
+                if (silkObj instanceof Boolean) {
+                    silkTouchIgnore = (Boolean) silkObj;
+                }
+
                 DropEntry entry = new DropEntry(
                         new ItemStack(itemMat, baseAmount),
                         baseChance,
@@ -164,12 +171,14 @@ public class DropConfigManager {
                         exp,
                         money,
                         expMultiplier,
-                        moneyMultiplier
+                        moneyMultiplier,
+                        silkTouchIgnore
                 );
                 drops.add(entry);
+
             }
             // 创建方块配置
-            BlockDropConfig blockConfig = new BlockDropConfig(overrideDefault, drops);
+            BlockDropConfig blockConfig = new BlockDropConfig(overrideDefault, silkTouchPreserveOriginal, drops);
             blockConfigs.put(material, blockConfig);
             plugin.getLogger().info("已加载方块掉落配置: " + blockName +
                     " (覆盖原版=" + overrideDefault + ", 掉落项数=" + drops.size() + ")");

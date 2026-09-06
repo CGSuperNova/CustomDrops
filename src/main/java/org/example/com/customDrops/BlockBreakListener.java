@@ -32,7 +32,6 @@ public class BlockBreakListener implements Listener {
         World world = block.getWorld();
         String worldName = world.getName();
 
-        // Debug: 世界检查
         if (plugin.isDebug()) {
             plugin.getLogger().info("[Debug] 玩家 " + player.getName() + " 在 " + worldName +
                     " 破坏了 " + block.getType().name() + " (坐标: " + block.getLocation() + ")");
@@ -53,19 +52,27 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        // 获取时运等级
+        // 获取时运等级和精准采集状态
         int fortuneLevel = 0;
+        boolean hasSilkTouch = false;
         ItemStack tool = player.getInventory().getItemInMainHand();
         Enchantment fortuneEnchant = Enchantment.getByKey(NamespacedKey.minecraft("fortune"));
         if (fortuneEnchant != null && tool.containsEnchantment(fortuneEnchant)) {
             fortuneLevel = tool.getEnchantmentLevel(fortuneEnchant);
         }
-        if (plugin.isDebug()) {
-            plugin.getLogger().info("[Debug] 时运等级: " + fortuneLevel);
+        Enchantment silkTouchEnchant = Enchantment.getByKey(NamespacedKey.minecraft("silk_touch"));
+        if (silkTouchEnchant != null && tool.containsEnchantment(silkTouchEnchant)) {
+            hasSilkTouch = true;
         }
 
-        // 是否覆盖原版掉落
-        if (blockConfig.isOverrideDefault()) {
+        if (plugin.isDebug()) {
+            plugin.getLogger().info("[Debug] 时运等级: " + fortuneLevel + ", 精准采集: " + hasSilkTouch);
+        }
+
+        // 是否覆盖原版掉落（考虑精准采集保留原版）
+        boolean shouldOverride = blockConfig.isOverrideDefault() &&
+                !(hasSilkTouch && blockConfig.isSilkTouchPreserveOriginal());
+        if (shouldOverride) {
             event.setDropItems(false);
             event.setExpToDrop(0);
             if (plugin.isDebug()) {
@@ -76,6 +83,14 @@ public class BlockBreakListener implements Listener {
         Location dropLoc = block.getLocation().add(0.5, 0.5, 0.5);
 
         for (DropEntry entry : blockConfig.getDrops()) {
+            // 精准采集跳过判断
+            if (hasSilkTouch && entry.isSilkTouchIgnore()) {
+                if (plugin.isDebug()) {
+                    plugin.getLogger().info("[Debug] 精准采集跳过掉落项: " + entry.getItemStack().getType().name());
+                }
+                continue;
+            }
+
             // 概率判定
             double chance = entry.getBaseChance();
             boolean dropHappens = random.nextDouble() < chance;
@@ -94,40 +109,49 @@ public class BlockBreakListener implements Listener {
                         ", 倍率=" + multiplier + ", 最终数量=" + finalAmount);
             }
 
-            // 掉落物品
+            // 掉落物品（如果数量超过64，拆分）
             ItemStack dropItem = entry.getItemStack();
-            dropItem.setAmount(finalAmount);
-            world.dropItemNaturally(dropLoc, dropItem);
+            int remaining = finalAmount;
+            while (remaining > 0) {
+                int stackSize = Math.min(remaining, 64);
+                ItemStack stack = dropItem.clone();
+                stack.setAmount(stackSize);
+                world.dropItemNaturally(dropLoc, stack);
+                remaining -= stackSize;
+            }
             if (plugin.isDebug()) {
                 plugin.getLogger().info("[Debug] 已掉落 " + finalAmount + " 个 " + dropItem.getType().name());
             }
 
-            // ---- 经验和金币处理（已修复） ----
-            if (entry.getExp() > 0 || entry.getMoney() > 0) {
+            // ---- 经验和金币处理（存款异步） ----
+            if (entry.getExp() > 0) {
                 double expMultiplier = entry.getExpMultiplier();
-                double moneyMultiplier = entry.getMoneyMultiplier();
                 int finalExp = (int)(entry.getExp() * (1 + fortuneLevel * expMultiplier));
-                double finalMoney = entry.getMoney() * (1 + fortuneLevel * moneyMultiplier);
-
                 if (finalExp > 0) {
                     player.giveExp(finalExp);
                     if (plugin.isDebug()) {
                         plugin.getLogger().info("[Debug] 给予 " + finalExp + " 经验值");
                     }
                 }
+            }
+
+            if (entry.getMoney() > 0 && plugin.getEconomy() != null) {
+                double moneyMultiplier = entry.getMoneyMultiplier();
+                double finalMoney = entry.getMoney() * (1 + fortuneLevel * moneyMultiplier);
                 if (finalMoney > 0) {
-                    if (plugin.getEconomy() != null) {
+                    // 存款延迟到下一 tick 执行，避免阻塞事件
+                    Bukkit.getScheduler().runTask(plugin, () -> {
                         plugin.getEconomy().depositPlayer(player, finalMoney);
                         if (plugin.isDebug()) {
                             plugin.getLogger().info("[Debug] 给予 " + finalMoney + " 金币");
                         }
-                    } else {
-                        plugin.getLogger().warning("无法给予金币：Vault 未加载或没有经济插件");
-                    }
+                    });
                 }
+            } else if (entry.getMoney() > 0 && plugin.getEconomy() == null && plugin.isDebug()) {
+                plugin.getLogger().warning("无法给予金币：Vault 未加载或没有经济插件");
             }
 
-            // 执行命令
+            // 执行命令（延迟到下一 tick）
             java.util.List<CommandEntry> commands = entry.getCommands();
             if (commands.isEmpty()) continue;
 
@@ -141,31 +165,35 @@ public class BlockBreakListener implements Listener {
                 for (CommandEntry cmdEntry : commands) {
                     String rawCommand = cmdEntry.getCommand().replace("%player%", player.getName());
                     String finalCommand;
-                    if (cmdEntry.getExecutor() == CommandEntry.ExecutorType.CONSOLE) {
+                    // 仅当 PAPI 可用且执行者为 CONSOLE 时才解析
+                    if (cmdEntry.getExecutor() == CommandEntry.ExecutorType.CONSOLE && plugin.isPapiAvailable()) {
                         finalCommand = PlaceholderAPI.setPlaceholders(player, rawCommand);
                     } else {
                         finalCommand = rawCommand;
                     }
 
                     if (plugin.isDebug()) {
-                        plugin.getLogger().info("[Debug] 执行命令: " + finalCommand +
+                        plugin.getLogger().info("[Debug] 将执行命令: " + finalCommand +
                                 " (执行者=" + cmdEntry.getExecutor() + ")");
                     }
 
-                    switch (cmdEntry.getExecutor()) {
-                        case CONSOLE:
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
-                            break;
-                        case PLAYER:
-                            player.performCommand(finalCommand);
-                            break;
-                        case OP:
-                            boolean wasOp = player.isOp();
-                            if (!wasOp) player.setOp(true);
-                            player.performCommand(finalCommand);
-                            if (!wasOp) player.setOp(false);
-                            break;
-                    }
+                    // 延迟执行命令
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        switch (cmdEntry.getExecutor()) {
+                            case CONSOLE:
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
+                                break;
+                            case PLAYER:
+                                player.performCommand(finalCommand);
+                                break;
+                            case OP:
+                                boolean wasOp = player.isOp();
+                                if (!wasOp) player.setOp(true);
+                                player.performCommand(finalCommand);
+                                if (!wasOp) player.setOp(false);
+                                break;
+                        }
+                    });
                 }
             }
         }

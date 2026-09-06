@@ -14,6 +14,8 @@ blocks:
   COAL_ORE:
     # 是否覆盖原版的掉落物
     override-default: true
+    # 当玩家的工具有精准采集时，是否保留原版掉落（矿石）
+    silk-touch-preserve-original: true
     # 特殊掉落物详细配置，可配置多个id
     drops:
       # 掉落物品id
@@ -26,6 +28,8 @@ blocks:
         fortune-affects-count: true
         # 命令执行次数是否按照掉落物品的数量来执行，如果填false则无论掉多少物品都只执行一次
         execute-command-per-item: false
+        # 若工具有精准采集，是否禁止该特殊掉落物品掉落
+        silk-touch-ignore: true
         exp: 10                # 基础经验值
         money: 5.0             # 基础金币
         exp-multiplier: 0.5    # 每级时运增加50%经验
@@ -43,6 +47,7 @@ blocks:
         base-chance: 1.0
         fortune-affects-count: true
         execute-command-per-item: true
+        silk-touch-ignore: false
         exp: 30
         money: 12.0
         exp-multiplier: 0.4
