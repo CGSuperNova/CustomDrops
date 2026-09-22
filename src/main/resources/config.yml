@@ -1,50 +1,115 @@
-# 是否检查插件更新（启动时异步检测，发现有新版本时通知有权限的管理员）
+# ============================================================
+#  CustomDrops 配置文件
+#  CustomDrops configuration file
+#
+#  修改后请执行 /customdrops reload 使其生效。
+#  Run /customdrops reload after editing.
+# ============================================================
+
+# 配置文件结构版本，请勿手动修改
+# Configuration structure version, do not edit manually
+config-version: 2
+
+# 是否检查插件更新（启动后异步检测一次，之后每 6 小时检测一次；
+# 发现有新版本时会通知拥有 customdrops.update 权限的在线管理员）
+# Whether to check for plugin updates (once after startup, then every 6 hours;
+# online admins with the "customdrops.update" permission are notified when a newer version exists)
 check-update: true
+
+# 更新检测所使用的 GitHub 仓库，格式为 "用户名/仓库名"
+# GitHub repository used for update checks, format: "owner/repo"
+update-check:
+  repository: "CGSuperNova/CustomDrops"
+
 # 是否开启调试模式
 # 开启调试模式后，服务器后台将输出详细的运行日志
 # 一般情况下建议不要打开，避免日志输出过多
+# Debug mode: prints detailed logs to the server console. Keep it off on production servers.
 debug: false
-# 在哪些世界启用自定义掉落
+
+# 是否发送 bStats 匿名统计数据
+# Whether to send anonymous bStats metrics
+metrics: true
+
+# 在哪些世界启用自定义掉落（世界名区分大小写）
+# Worlds where custom drops are enabled (world names are case-sensitive)
 enabled-worlds:
   - world
 
-# 具体方块配置
+# ============================================================
+#  具体方块配置 / Block configuration
+#
+#  方块名可写 COAL_ORE、coal_ore 或 minecraft:coal_ore。
+#  Block names accept COAL_ORE, coal_ore or minecraft:coal_ore.
+#
+#  也可用命令配置：
+#    /customdrops set <方块id> <选项> [参数...]
+#    /customdrops info <方块id>
+#    /customdrops target <方块id> <true|false>
+#    /customdrops delete <方块id>
+#    /customdrops undo [步数]
+# ============================================================
 blocks:
-  # 方块ID
+  # 方块ID / Block id
   COAL_ORE:
+    # 是否启用该方块的特殊掉落（true = 启用，false = 完全按原版处理）
+    # Whether this block's custom drops are enabled (false = behaves like vanilla)
+    enabled: true
     # 是否覆盖原版的掉落物
+    # Whether to override the vanilla drops
     override-default: true
     # 当玩家的工具有精准采集时，是否保留原版掉落（矿石）
+    # Keep the vanilla drop when the tool has Silk Touch
     silk-touch-preserve-original: true
-    # 特殊掉落物详细配置，可配置多个id
+
+    # 特殊掉落物详细配置，可配置多个 id
+    # List of custom drops; multiple entries are allowed
     drops:
-      # 掉落物品id
+      # 掉落物品id / Item id
       - item: "DIAMOND"
-        # 掉落物品数量
+        # 掉落物品数量 / Base amount
         amount: 1
-        # 掉落该物品的概率
+        # 掉落该物品的概率（0 ~ 1）/ Drop chance (0 ~ 1)
         base-chance: 0.1
-        # 是否允许时运附魔影响掉落数量
+        # 每级时运额外增加的概率（0.01 = 每级 +1%）
+        # Extra chance per Fortune level (0.01 = +1% per level)
+        fortune-chance-bonus: 0.0
+        # 是否允许时运附魔影响掉落数量（按原版随机倍率）
+        # Whether Fortune affects the dropped amount (vanilla-like random multiplier)
         fortune-affects-count: true
         # 命令执行次数是否按照掉落物品的数量来执行，如果填false则无论掉多少物品都只执行一次
+        # Run commands once per dropped item instead of once per drop
         execute-command-per-item: false
         # 若工具有精准采集，是否禁止该特殊掉落物品掉落
+        # Skip this drop when the tool has Silk Touch
         silk-touch-ignore: true
-        exp: 10                # 基础经验值
-        money: 5.0             # 基础金币
-        exp-multiplier: 0.5    # 每级时运增加50%经验
-        money-multiplier: 0.5  # 每级时运增加50%金币
+        # 基础经验值 / Base experience
+        exp: 10
+        # 基础金币 / Base money
+        money: 5.0
+        # 每级时运增加50%经验 / +50% experience per Fortune level
+        exp-multiplier: 0.5
+        # 每级时运增加50%金币 / +50% money per Fortune level
+        money-multiplier: 0.5
+        # 触发该掉落所需的权限；留空表示不需要任何权限
+        # Permission required to trigger this drop; leave empty for no requirement
+        permission: ""
         # 掉落该物品所执行的命令，可以写多个
+        # Commands executed when this item drops; multiple entries are allowed
         commands:
-          # 命令详情，%player%表示玩家id
+          # 命令详情，%player% 表示玩家id
+          # %player% is replaced with the player name
           - command: "say 玩家 %player% 挖到了钻石！"
-            # 执行者，可填CONSOLE（控制台），PLAYER（玩家），OP（管理）
+            # 执行者，可填 CONSOLE（控制台），PLAYER（玩家），OP（管理）
+            # Executor: CONSOLE, PLAYER or OP
             executor: CONSOLE
           - command: "eco give %player% 100"
             executor: CONSOLE
+
       - item: "COAL"
         amount: 3
         base-chance: 1.0
+        fortune-chance-bonus: 0.0
         fortune-affects-count: true
         execute-command-per-item: true
         silk-touch-ignore: false
@@ -52,6 +117,9 @@ blocks:
         money: 12.0
         exp-multiplier: 0.4
         money-multiplier: 0.4
+        # 只有拥有该权限的玩家才会掉落该物品（示例）
+        # Only players with this permission can get this drop (example)
+        permission: ""
         commands:
           - command: "give %player% stone 1"
             executor: PLAYER

@@ -6,26 +6,32 @@
 
     <groupId>org.example.com</groupId>
     <artifactId>CustomDrops</artifactId>
-    <version>1.0.4</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <name>CustomDrops</name>
+    <description>自定义方块掉落物插件 / Custom block drops plugin</description>
 
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <paper.version>1.20.4-R0.1-SNAPSHOT</paper.version>
+        <bstats.version>3.2.1</bstats.version>
+        <placeholderapi.version>2.12.2</placeholderapi.version>
     </properties>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <!-- 使用 release 而非 source/target，保证编译时校验 JDK 17 的 API 边界 -->
+                    <release>${java.version}</release>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -39,12 +45,30 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <!-- 生成 CustomDrops-<version>.jar，不再附加 -shaded 后缀 -->
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
                                 <relocation>
+                                    <!-- 重定位到保留 org.bstats 层级的包名，
+                                         避免旧版写法把 org.bstats.bukkit.Metrics 压平成 org.example.com.customDrops.Metrics
+                                         而导致的 NoClassDefFoundError -->
                                     <pattern>org.bstats</pattern>
-                                    <shadedPattern>org.example.com.customDrops</shadedPattern>
+                                    <shadedPattern>org.example.com.customDrops.libs.bstats</shadedPattern>
                                 </relocation>
                             </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -54,6 +78,17 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <includes>
+                    <include>plugin.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <!-- config.yml 不做变量替换，避免其中的 $ 或 % 被误处理 -->
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>plugin.yml</exclude>
+                </excludes>
             </resource>
         </resources>
     </build>
@@ -77,7 +112,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <version>${paper.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -97,14 +132,14 @@
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
-            <version>3.2.1</version>
+            <version>${bstats.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
-            <version>2.12.2</version>
+            <version>${placeholderapi.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

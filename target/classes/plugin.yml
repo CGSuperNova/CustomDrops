@@ -1,13 +1,20 @@
 name: CustomDrops
-version: 1.0.2
+version: '1.1.0'
 main: org.example.com.customDrops.CustomDropsPlugin
 api-version: 1.13
-description: 自定义方块掉落物插件
+description: 自定义方块掉落物插件 / Custom block drops plugin
 author: buzizi
+softdepend:
+  - PlaceholderAPI
+  - Vault
 commands:
   customdrops:
     description: CustomDrops 主命令
-    usage: /customdrops <reload|list> [页码]
+    usage: >-
+      /customdrops help | reload | list [页码] | info <方块id> |
+      target <方块id> <true|false> | delete <方块id> |
+      set <方块id> <选项> [参数...] | undo [步数] |
+      placeholders | update
     permission: customdrops.use
     aliases: [cd]
 
@@ -15,6 +22,19 @@ permissions:
   customdrops.use:
     description: 允许使用 /customdrops 命令
     default: true
+  customdrops.admin:
+    description: 拥有 CustomDrops 的全部权限
+    default: op
+    children:
+      customdrops.use: true
+      customdrops.reload: true
+      customdrops.list: true
+      customdrops.info: true
+      customdrops.set: true
+      customdrops.target: true
+      customdrops.delete: true
+      customdrops.undo: true
+      customdrops.update: true
   customdrops.reload:
     description: 允许重载配置文件
     default: op
@@ -22,6 +42,31 @@ permissions:
       customdrops.use: true
   customdrops.list:
     description: 允许查看配置列表
+    default: op
+    children:
+      customdrops.use: true
+  customdrops.info:
+    description: 允许查询方块掉落信息与变量列表
+    default: op
+    children:
+      customdrops.use: true
+  customdrops.set:
+    description: 允许使用 /customdrops set 修改配置
+    default: op
+    children:
+      customdrops.use: true
+  customdrops.target:
+    description: 允许使用 /customdrops target 启用或禁用方块
+    default: op
+    children:
+      customdrops.use: true
+  customdrops.delete:
+    description: 允许使用 /customdrops delete 删除方块配置
+    default: op
+    children:
+      customdrops.use: true
+  customdrops.undo:
+    description: 允许使用 /customdrops undo 撤回命令操作
     default: op
     children:
       customdrops.use: true
